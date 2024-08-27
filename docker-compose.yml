@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  mqtt-client:
+    build:
+      context: ./docker/mqtt-client
+      dockerfile: Dockerfile
+    container_name: mqtt-client
+    restart: always
+    depends_on:
+      - database
+    environment:
+      MYSQL_USER: root
+      # You might need to add necessary environment variables here
+      # to connect to the MySQL database, such as:
+      # MYSQL_HOST: database
+      # MYSQL_USER: root
+      # MYSQL_PASSWORD: rootpassword
+
+  database:
+    build:
+      context: ./docker/database
+      dockerfile: Dockerfile
+    container_name: mysql-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+

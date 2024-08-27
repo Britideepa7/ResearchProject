@@ -1,0 +1,102 @@
+- name: Deploy MQTT Client and MySQL Database
+  hosts: all  # Match this with your inventory group name
+  become: yes
+  tasks:
+    - name: Update APT package index
+      apt:
+        update_cache: yes
+
+    - name: Ensure any held packages are released
+      command: apt-mark unhold containerd
+      ignore_errors: yes
+
+    - name: Remove conflicting containerd if installed
+      apt:
+        name: containerd
+        state: absent
+      ignore_errors: yes
+
+    - name: Install required packages for Docker
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+        state: present
+
+    - name: Add Docker’s official GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker’s official APT repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"  # Replace 'focal' with your version if different
+        state: present
+
+    - name: Install Docker
+      apt:
+        name: docker-ce
+        state: present
+
+    - name: Ensure Docker Compose is installed
+      apt:
+        name: docker-compose
+        state: present
+
+    - name: Create project directory on the remote server
+      file:
+        path: "/home/{{ ansible_user }}/ResearchProject"
+        state: directory
+        mode: '0755'
+
+    - name: Create docker directory on the remote server
+      file:
+        path: "/home/{{ ansible_user }}/ResearchProject/docker"
+        state: directory
+        mode: '0755'
+
+    - name: Create mqtt-client directory on the remote server
+      file:
+        path: "/home/{{ ansible_user }}/ResearchProject/docker/mqtt-client"
+        state: directory
+        mode: '0755'
+
+    - name: Create database directory on the remote server
+      file:
+        path: "/home/{{ ansible_user }}/ResearchProject/docker/database"
+        state: directory
+        mode: '0755'
+
+    - name: Copy MQTT Client Dockerfile to the remote server
+      copy:
+        src: "/home/labdoo/Desktop/Briti Laptop Data/University/ResearchProject/docker/mqtt-client/Dockerfile"
+        dest: "/home/{{ ansible_user }}/ResearchProject/docker/mqtt-client/Dockerfile"
+
+    - name: Copy MySQL Database Dockerfile to the remote server
+      copy:
+        src: "/home/labdoo/Desktop/Briti Laptop Data/University/ResearchProject/docker/database/Dockerfile"
+        dest: "/home/{{ ansible_user }}/ResearchProject/docker/database/Dockerfile"
+
+    - name: Copy Docker Compose file to the remote server
+      copy:
+        src: "/home/labdoo/Desktop/Briti Laptop Data/University/ResearchProject/docker-compose.yml"
+        dest: "/home/{{ ansible_user }}/ResearchProject/docker-compose.yml"
+
+    - name: Copy MQTT Client files to the remote server
+      copy:
+        src: "/home/labdoo/Desktop/Briti Laptop Data/University/ResearchProject/docker/mqtt-client/"
+        dest: "/home/{{ ansible_user }}/ResearchProject/docker/mqtt-client/"
+        mode: '0755'
+
+    - name: Copy MySQL Database files to the remote server
+      copy:
+        src: "/home/labdoo/Desktop/Briti Laptop Data/University/ResearchProject/docker/database/"
+        dest: "/home/{{ ansible_user }}/ResearchProject/docker/database/"
+        mode: '0755'
+
+    - name: Build and start the application using Docker Compose
+      command: docker-compose up -d
+      args:
+        chdir: "/home/{{ ansible_user }}/ResearchProject"
