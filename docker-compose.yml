@@ -11,11 +11,6 @@ services:
       - database
     environment:
       MYSQL_USER: root
-      # You might need to add necessary environment variables here
-      # to connect to the MySQL database, such as:
-      # MYSQL_HOST: database
-      # MYSQL_USER: root
-      # MYSQL_PASSWORD: rootpassword
 
   database:
     build:
@@ -27,6 +22,9 @@ services:
       MYSQL_ROOT_PASSWORD: rootpassword
     ports:
       - "3306:3306"
+    volumes:
+      - ./docker/database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s

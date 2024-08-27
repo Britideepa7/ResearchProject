@@ -1,5 +1,5 @@
-- name: Deploy MQTT Client and MySQL Database
-  hosts: all  # Match this with your inventory group name
+- name: Deploy Shopping Mall Monitoring System
+  hosts: all  
   become: yes
   tasks:
     - name: Update APT package index
@@ -32,7 +32,7 @@
 
     - name: Add Docker’s official APT repository
       apt_repository:
-        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"  # Replace 'focal' with your version if different
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"  
         state: present
 
     - name: Install Docker
