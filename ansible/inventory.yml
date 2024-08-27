@@ -4,4 +4,4 @@ all:
       ansible_host: 4.211.132.96
       ansible_user: briti
     
-    
+      
