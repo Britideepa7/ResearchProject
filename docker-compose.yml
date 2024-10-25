@@ -5,29 +5,102 @@ services:
     build:
       context: ./docker/mqtt-client
       dockerfile: Dockerfile
+    image: mqtt-client_image
     container_name: mqtt-client
+    # volumes:
+    #   - ./:./docker/mqtt-client/highavailability.py
     restart: always
+    environment:
+      - SCRIPT_NAME=highavailability.py # Replace with the actual script name
+      - PYTHONUNBUFFERED=1
     depends_on:
-      - database
-    environment:
-      MYSQL_USER: root
+      - mqtt_broker
 
-  database:
+  mqtt_publisher_service:
     build:
-      context: ./docker/database
+      context: ./docker/mqtt-client
       dockerfile: Dockerfile
-    container_name: mysql-db
+    image: mqtt_publisher_service_image
+    container_name: mqtt_publisher_service_container
+    # volumes:
+    #   - ./:./docker/mqtt-client/
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-    ports:
-      - "3306:3306"
+      - SCRIPT_NAME=publisher.py # Replace with the second script name
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - mqtt_broker
+
+  mqtt_subscriber_service:
+    build:
+      context: ./docker/mqtt-client
+      dockerfile: Dockerfile
+    image: mqtt_subscriber_service_image
+    container_name: mqtt_subscriber_service_container
+    # volumes:
+    #   - .:/app
+    restart: always
+    environment:
+      - SCRIPT_NAME=subscriber.py # Replace with the third script name
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - mqtt_broker
+
+  mqtt_random_service:
+    build:
+      context: ./docker/mqtt-client
+      dockerfile: Dockerfile
+    image: mqtt_random_service_image
+    container_name: mqtt_random_service_container
+    # volumes:
+    #   - .:/app
+    restart: always
+    environment:
+      - SCRIPT_NAME=random-mqtt.py # Replace with the fourth script name
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - mqtt_broker
+
+  mqtt_broker:
+    image: eclipse-mosquitto
+    container_name: mqtt_broker_container
     volumes:
-      - ./docker/database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./volumes/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    ports:
+      - "2883:2883"
+      # - "8333:8333"
+    restart: always
 
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+## Prometheus Grafana
 
+  mosquitto_exporter:
+        image: sapcc/mosquitto-exporter
+        ports:
+          - "9234:9234"
+        environment:
+          - BROKER_ENDPOINT=tcp://mqtt_broker:2883
+        restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./volumes/prometheus/:/etc/prometheus/
+      - prometheus_data:/prometheus
+    ports:
+      - "9091:9090"
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    restart: unless-stopped
+
+volumes:
+  grafana_data:
+  prometheus_data:

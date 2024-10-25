@@ -5,6 +5,10 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-COPY app.py eda.py publisher.py subscriber.py ./
+COPY highavailability.py random-mqtt.py publisher.py subscriber.py ./
 
-CMD ["python", "app.py"]
+ENV PYTHONUNBUFFERED=1
+
+ARG SCRIPT_NAME
+
+CMD ["sh", "-c", "python3 $SCRIPT_NAME"]

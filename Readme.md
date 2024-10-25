@@ -15,16 +15,16 @@ ResearchProject/
 │   ├── playbook.yml
 │   └── inventory.yml
 ├── docker/
-│   ├── database/
-│   │   ├── Dockerfile
-│   │   └── init.sql
 │   ├── mqtt-client/
-|   |   ├── app.py
+|   |   ├── highavailability.py
 │   │   ├── Dockerfile
 │   │   ├── requirements.txt
-│   │   ├── eda.py
+│   │   ├── plot.py
 │   │   ├── publisher.py
-│   │   └── subscriber.py
+│   │   ├── subscriber.py
+|   |   ├── random-mqtt.py
+|   |   ├── RTT.py
+|       └── plot.py
 ├── docker-compose.yml
 └── Readme.md
 ```

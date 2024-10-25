@@ -1,2 +1,6 @@
 paho-mqtt
 mysql-connector-python
+paho-mqtt 
+numpy 
+matplotlib
+roundrobin

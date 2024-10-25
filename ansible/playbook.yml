@@ -1,9 +1,16 @@
-- name: Deploy Shopping Mall Monitoring System
-  hosts: all  
+---
+- name: Deploy MQTT Docker Services
+  hosts: vm
   become: yes
   tasks:
-    - name: Update APT package index
+    - name: Install prerequisites
       apt:
+        name: 
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+        state: present
         update_cache: yes
 
     - name: Ensure any held packages are released
@@ -15,15 +22,6 @@
         name: containerd
         state: absent
       ignore_errors: yes
-
-    - name: Install required packages for Docker
-      apt:
-        name:
-          - apt-transport-https
-          - ca-certificates
-          - curl
-          - software-properties-common
-        state: present
 
     - name: Add Docker’s official GPG key
       apt_key:
@@ -62,10 +60,10 @@
         path: "/home/{{ ansible_user }}/ResearchProject/docker/mqtt-client"
         state: directory
         mode: '0755'
-
-    - name: Create database directory on the remote server
+    
+    - name: Create volumes directory on the remote server
       file:
-        path: "/home/{{ ansible_user }}/ResearchProject/docker/database"
+        path: "/home/{{ ansible_user }}/ResearchProject/volumes"
         state: directory
         mode: '0755'
 
@@ -73,11 +71,6 @@
       copy:
         src: "/home/labdoo/Desktop/Briti Laptop Data/University/ResearchProject/docker/mqtt-client/Dockerfile"
         dest: "/home/{{ ansible_user }}/ResearchProject/docker/mqtt-client/Dockerfile"
-
-    - name: Copy MySQL Database Dockerfile to the remote server
-      copy:
-        src: "/home/labdoo/Desktop/Briti Laptop Data/University/ResearchProject/docker/database/Dockerfile"
-        dest: "/home/{{ ansible_user }}/ResearchProject/docker/database/Dockerfile"
 
     - name: Copy Docker Compose file to the remote server
       copy:
@@ -89,14 +82,13 @@
         src: "/home/labdoo/Desktop/Briti Laptop Data/University/ResearchProject/docker/mqtt-client/"
         dest: "/home/{{ ansible_user }}/ResearchProject/docker/mqtt-client/"
         mode: '0755'
-
-    - name: Copy MySQL Database files to the remote server
+    
+    - name: Copy MQTT config file to the remote server
       copy:
-        src: "/home/labdoo/Desktop/Briti Laptop Data/University/ResearchProject/docker/database/"
-        dest: "/home/{{ ansible_user }}/ResearchProject/docker/database/"
-        mode: '0755'
-
+        src: "/home/labdoo/Desktop/Briti Laptop Data/University/ResearchProject/volumes/mosquitto.conf"
+        dest: "/home/{{ ansible_user }}/ResearchProject/volumes/"
+  
     - name: Build and start the application using Docker Compose
       command: docker-compose up -d
       args:
-        chdir: "/home/{{ ansible_user }}/ResearchProject"
+        chdir: "/home/{{ ansible_user }}/ResearchProject/docker/mqtt-client/"
